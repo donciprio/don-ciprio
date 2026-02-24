@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DON CIPRIO | Pedidos Online</title>
+
+<meta name="description" content="Pedidos online DON CIPRIO en Arbeláez.">
+<meta name="keywords" content="Don Ciprio, comida mexicana, Arbeláez">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+:root{
+--primary:#c0392b;
+--dark:#111;
+--light:#f8f5f2;
+}
+
+body{
+margin:0;
+font-family:'Segoe UI',sans-serif;
+background:var(--light);
+color:black;
+transition:.3s;
+}
+
+body.dark{
+background:#1c1c1c;
+color:white;
+}
+
+body.dark section{
+background:#222 !important;
+color:white;
+}
+
+header{
+background:linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
+url("fondo.jpg") center/cover no-repeat;
+height:90vh;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+color:white;
+text-align:center;
+}
+
+h1{font-size:3.5em;margin:0;}
+
+.btn{
+padding:10px 20px;
+background:var(--primary);
+color:white;
+border:none;
+border-radius:25px;
+cursor:pointer;
+margin:5px;
+transition:.3s;
+text-decoration:none;
+display:inline-block;
+}
+
+.btn:hover{
+background:#a93226;
+}
+
+.menu{
+display:flex;
+flex-wrap:wrap;
+justify-content:center;
+gap:20px;
+padding:40px;
+}
+
+.card{
+background:white;
+width:250px;
+padding:15px;
+border-radius:12px;
+box-shadow:0 5px 15px rgba(0,0,0,.2);
+transition:.3s;
+}
+
+.card:hover{
+transform:scale(1.05);
+}
+
+.price{color:var(--primary);font-weight:bold;}
+
+.cart{
+position:fixed;
+top:20px;
+right:20px;
+background:var(--primary);
+color:white;
+padding:10px 15px;
+border-radius:25px;
+cursor:pointer;
+z-index:1000;
+}
+
+.cart-box{
+position:fixed;
+right:-400px;
+top:0;
+width:350px;
+height:100%;
+background:white;
+box-shadow:-5px 0 15px rgba(0,0,0,.3);
+padding:20px;
+transition:.4s;
+overflow:auto;
+color:black;
+z-index:1000;
+}
+
+.cart-box.active{
+right:0;
+border-left:4px solid #c0392b;
+}
+
+.close-btn{
+position:absolute;
+top:10px;
+right:15px;
+font-size:24px;
+font-weight:bold;
+cursor:pointer;
+color:#c0392b;
+}
+
+footer{
+background:#111;
+color:white;
+text-align:center;
+padding:25px;
+}
+
+input,select{
+width:100%;
+padding:8px;
+margin:5px 0;
+}
+</style>
+</head>
+<body>
+
+<div class="cart" onclick="toggleCart()">🛒 (<span id="count">0</span>)</div>
+
+<div class="cart-box" id="cartBox">
+<div class="close-btn" onclick="toggleCart()">×</div>
+
+<h2>Tu Pedido</h2>
+<div id="cartItems"></div>
+
+<label>Tipo de entrega:</label>
+<select id="delivery" onchange="updateCart()">
+<option value="0">Recoger en tienda (Gratis)</option>
+<option value="5000">Domicilio (+$5.000)</option>
+</select>
+
+<h3>Total: $<span id="total">0</span></h3>
+
+<button class="btn" onclick="pagarNequi()">💜 Pagar con Nequi</button>
+<button class="btn" onclick="enviarWhatsApp()">📲 Pedir por WhatsApp</button>
+<button class="btn" onclick="generarFactura()">🧾 Generar Factura</button>
+</div>
+
+<header>
+<h1>DON CIPRIO</h1>
+<p>Pedidos Online Oficiales</p>
+<button class="btn" onclick="toggleDark()">Modo Oscuro</button>
+</header>
+
+<section>
+<div class="menu" id="menu"></div>
+</section>
+
+<!-- MINI MAPA -->
+<section style="padding:40px;text-align:center;background:#f4f4f4;">
+<h2>Nuestra Ubicación 📍</h2>
+
+<div style="max-width:800px;margin:auto;border-radius:15px;overflow:hidden;box-shadow:0 5px 20px rgba(0,0,0,.2);">
+<iframe 
+src="https://www.google.com/maps?q=Cra.+7+%237-2,+Arbel%C3%A1ez,+Cundinamarca&output=embed"
+width="100%" 
+height="300" 
+style="border:0;" 
+allowfullscreen="" 
+loading="lazy">
+</iframe>
+</div>
+
+<p style="margin-top:10px;">
+📍 Cra. 7 #7-2, Arbeláez, Cundinamarca  
+</p>
+
+<a href="https://www.google.com/maps?q=Cra.+7+%237-2,+Arbel%C3%A1ez,+Cundinamarca" 
+target="_blank" 
+class="btn">
+Abrir en Google Maps
+</a>
+
+<a href="https://waze.com/ul?q=Cra.+7+%237-2,+Arbel%C3%A1ez,+Cundinamarca&navigate=yes" 
+target="_blank" 
+class="btn" 
+style="background:#33ccff;">
+🚗 Abrir en Waze
+</a>
+
+</section>
+
+<footer>
+📍 Cra. 7 #7-2, Arbeláez, Cundinamarca  
+📞 3176184453  
+© 2026 DON CIPRIO
+</footer>
+
+<script>
+
+let products=[
+{name:"Campechana",price:18000},
+{name:"Gringas",price:15000},
+{name:"Burritos",price:18000},
+{name:"Tacos",price:15000},
+{name:"Pozoles",price:18000},
+{name:"Nachos",price:15000}
+];
+
+let cart=JSON.parse(localStorage.getItem("cart"))||[];
+
+function loadMenu(){
+let menu=document.getElementById("menu");
+products.forEach((p,i)=>{
+menu.innerHTML+=`
+<div class="card">
+<h3>${p.name}</h3>
+<p class="price">$${p.price}</p>
+<button class="btn" onclick="addToCart(${i})">Agregar</button>
+</div>`;
+});
+}
+
+function addToCart(i){cart.push(products[i]);saveCart();updateCart();}
+function removeItem(index){cart.splice(index,1);saveCart();updateCart();}
+function saveCart(){localStorage.setItem("cart",JSON.stringify(cart));}
+
+function updateCart(){
+document.getElementById("count").innerText=cart.length;
+let items=document.getElementById("cartItems");
+items.innerHTML="";
+let total=0;
+
+cart.forEach((item,index)=>{
+items.innerHTML+=`
+<div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+<span>${item.name} - $${item.price}</span>
+<button onclick="removeItem(${index})">❌</button>
+</div>`;
+total+=item.price;
+});
+
+let delivery=parseInt(document.getElementById("delivery").value||0);
+total+=delivery;
+document.getElementById("total").innerText=total;
+}
+
+function toggleCart(){document.getElementById("cartBox").classList.toggle("active");}
+function toggleDark(){document.body.classList.toggle("dark");}
+
+function pagarNequi(){
+if(cart.length===0){alert("El carrito está vacío");return;}
+let total=parseInt(document.getElementById("total").innerText);
+alert("Envía el pago Nequi al número 317 618 4453\nValor: $"+total);
+}
+
+function enviarWhatsApp(){
+if(cart.length===0){alert("El carrito está vacío");return;}
+let total=document.getElementById("total").innerText;
+let mensaje="Hola DON CIPRIO 👋\n\nPedido:\n";
+cart.forEach(item=>{mensaje+=`• ${item.name} - $${item.price}\n`;});
+mensaje+=`\nTotal: $${total}`;
+window.open("https://wa.me/573176184453?text="+encodeURIComponent(mensaje));
+}
+
+function generarFactura(){
+if(cart.length===0){alert("El carrito está vacío");return;}
+const { jsPDF } = window.jspdf;
+let doc = new jsPDF();
+let total=document.getElementById("total").innerText;
+doc.text("DON CIPRIO",20,20);
+doc.text("Factura",20,30);
+let y=40;
+cart.forEach(item=>{doc.text(`${item.name} - $${item.price}`,20,y);y+=10;});
+doc.text("Total: $"+total,20,y+10);
+doc.save("Factura_DonCiprio.pdf");
+}
+
+loadMenu();
+updateCart();
+
+</script>
+</body>
+</html>
